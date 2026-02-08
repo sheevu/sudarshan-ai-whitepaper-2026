@@ -1,0 +1,1784 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sudarshan AI Labs — Interactive Whitepaper</title>
+  <meta name="description" content="Interactive whitepaper for Sudarshan AI Labs: India-first MSME growth + Gov-grade AI architecture, realtime insights, and implementation plan." />
+
+  <!--
+    Single-file, mobile-friendly, interactive whitepaper.
+
+    What’s inside:
+    - 3D vector-ish UI (CSS transforms + gradients + light tracking)
+    - Infographics (SVG + Canvas)
+    - Realtime telemetry + realtime architecture animation (simulated)
+    - Works offline (no external libs)
+
+    NOTE: The “realtime” elements are intentionally simulated so the page can run
+    as a standalone file without any backend or PII.
+  -->
+
+  <style>
+    /* Sticky CTA */
+    .sticky-cta{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;z-index:20;display:flex;gap:10px;background:rgba(6,8,20,.7);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:8px 10px;box-shadow:0 20px 50px rgba(0,0,0,.45)}
+    .cta-btn{padding:10px 14px;border-radius:999px;font-size:13px;border:1px solid rgba(255,255,255,.18);text-decoration:none;color:#EAF0FF}
+    .cta-btn.call{background:linear-gradient(180deg, rgba(34,197,94,.25), rgba(34,197,94,.12))}
+    .cta-btn.wa{background:linear-gradient(180deg, rgba(71,183,255,.25), rgba(71,183,255,.12))}
+    .cta-btn.roi{background:linear-gradient(180deg, rgba(139,92,246,.25), rgba(139,92,246,.12))}
+    @media (min-width:981px){.sticky-cta{display:none}}
+
+    /* Section spacers to utilize vacant areas visually */
+    .section-spacer{height:24px}
+    .hero .inner{padding-bottom:26px}
+
+    html{scroll-behavior:smooth;}
+    /* ==========================
+       THEME TOKENS
+       ========================== */
+    :root{
+      --bg:#070A12;
+      --card:#0D1224;
+      --card2:#0B1021;
+      --text:#EAF0FF;
+      --muted:#A9B3D7;
+      --line:rgba(255,255,255,.10);
+      --glow:rgba(64,155,255,.35);
+      --accent:#47B7FF;
+      --accent2:#8B5CF6;
+      --accent3:#22C55E;
+      --warn:#FBBF24;
+      --bad:#EF4444;
+      --good:#22C55E;
+      --radius:18px;
+      --shadow: 0 22px 70px rgba(0,0,0,.45);
+      --shadow2: 0 12px 40px rgba(0,0,0,.45);
+
+      /* Live-controlled “depth” value (updated via JS) */
+      --tilt: 8;
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      color:var(--text);
+      background:
+        radial-gradient(1200px 600px at 15% 10%, rgba(71,183,255,.18), transparent 55%),
+        radial-gradient(900px 700px at 85% 18%, rgba(139,92,246,.16), transparent 55%),
+        radial-gradient(900px 600px at 55% 95%, rgba(34,197,94,.12), transparent 55%),
+        linear-gradient(180deg, #060814, #050713 60%, #040510);
+      overflow-x:hidden;
+    }
+
+    a{color:inherit}
+
+    /* ==========================
+       BACKGROUND GRID
+       A subtle animated grid gives “3D dashboard” vibe.
+       ========================== */
+    .grid{
+      position:fixed; inset:0;
+      background-image:
+        linear-gradient(to right, rgba(255,255,255,.05) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,.05) 1px, transparent 1px);
+      background-size: 64px 64px;
+      mask-image: radial-gradient(closest-side at 50% 20%, rgba(0,0,0,.85), rgba(0,0,0,.25), transparent 80%);
+      opacity:.35;
+      pointer-events:none;
+      transform: translateZ(0);
+      animation: drift 18s linear infinite;
+    }
+    @keyframes drift{
+      0%{background-position: 0 0}
+      100%{background-position: 192px 128px}
+    }
+
+    .wrap{max-width:1180px; margin:0 auto; padding:28px 18px 80px}
+
+    /* ==========================
+       STICKY HEADER
+       ========================== */
+    header{
+      position:sticky; top:0; z-index:10;
+      backdrop-filter: blur(10px);
+      background: linear-gradient(180deg, rgba(6,8,20,.78), rgba(6,8,20,.45));
+      border-bottom:1px solid var(--line);
+    }
+    .topbar{
+      max-width:1180px; margin:0 auto;
+      padding:14px 18px;
+      display:flex; align-items:center; justify-content:space-between; gap:12px;
+    }
+
+    .brand{display:flex; align-items:center; gap:12px; min-width:240px}
+    .logo{
+      width:40px; height:40px; border-radius:14px;
+      background:
+        radial-gradient(circle at 25% 20%, rgba(255,255,255,.25), transparent 45%),
+        conic-gradient(from 210deg, var(--accent), var(--accent2), var(--accent3), var(--accent));
+      box-shadow: 0 0 0 1px rgba(255,255,255,.10), 0 18px 45px rgba(71,183,255,.14);
+      transform: perspective(800px) rotateX(10deg) rotateY(-18deg);
+    }
+    .brand h1{font-size:14px; margin:0; line-height:1.1}
+    .brand p{margin:0; font-size:12px; color:var(--muted)}
+
+    .actions{display:flex; gap:10px; align-items:center; flex-wrap:wrap; justify-content:flex-end}
+    .pill{
+      border:1px solid rgba(255,255,255,.14);
+      background: rgba(13,18,36,.7);
+      color: var(--text);
+      padding:10px 12px;
+      border-radius:999px;
+      display:flex; align-items:center; gap:8px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+    .pill input[type="range"]{width:140px}
+
+    .btn{
+      border:1px solid rgba(255,255,255,.16);
+      background: linear-gradient(180deg, rgba(71,183,255,.22), rgba(71,183,255,.10));
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      box-shadow: var(--shadow2);
+      transform: translateZ(0);
+    }
+    .btn:hover{filter:brightness(1.08)}
+    .btn:active{transform: translateY(1px)}
+
+    .btn.secondary{background: rgba(13,18,36,.8)}
+
+    /* ==========================
+       PAGE LAYOUT
+       ========================== */
+    .hero{
+      padding:34px 0 18px;
+      display:grid;
+      grid-template-columns: 1.25fr .75fr;
+      gap:18px;
+      align-items:stretch;
+    }
+
+    .card{
+      position:relative;
+      background:
+        radial-gradient(900px 380px at 15% 12%, rgba(71,183,255,.18), transparent 55%),
+        radial-gradient(800px 380px at 75% 18%, rgba(139,92,246,.14), transparent 55%),
+        linear-gradient(180deg, rgba(13,18,36,.92), rgba(11,16,33,.92));
+      border:1px solid rgba(255,255,255,.12);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      transform: translateZ(0);
+    }
+
+    /* A subtle “moving highlight” controlled by JS (pointer position) */
+    .card::before{
+      content:"";
+      position:absolute; inset:-1px;
+      background: radial-gradient(520px 240px at var(--mx, 20%) var(--my, 18%), rgba(255,255,255,.08), transparent 55%);
+      pointer-events:none;
+    }
+
+    .card .inner{padding:18px}
+
+    .h-eyebrow{display:flex; align-items:center; gap:10px; color:var(--muted); font-size:12px}
+    .dot{width:8px; height:8px; border-radius:999px; background:var(--accent); box-shadow: 0 0 0 6px rgba(71,183,255,.10)}
+
+    h2{margin:10px 0 6px; font-size:28px; letter-spacing:-.02em}
+    .subtitle{margin:0; color:var(--muted); line-height:1.45}
+
+    .kpis{display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:10px; margin-top:14px}
+    .kpi{
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(7,10,18,.35);
+      border-radius:16px;
+      padding:12px;
+      transform-style:preserve-3d;
+      transform: perspective(900px) rotateX(8deg);
+      box-shadow: 0 16px 40px rgba(0,0,0,.35);
+    }
+    .kpi .label{font-size:12px; color:var(--muted)}
+    .kpi .value{font-size:18px; font-weight:700; margin-top:6px}
+    .kpi .hint{font-size:11px; color:rgba(233,241,255,.72); margin-top:6px}
+
+    .side{display:flex; flex-direction:column; gap:12px}
+
+    .mini{
+      border:1px solid rgba(255,255,255,.12);
+      border-radius: var(--radius);
+      background: rgba(13,18,36,.65);
+      box-shadow: var(--shadow2);
+      overflow:hidden;
+    }
+    .mini .inner{padding:14px}
+
+    .tagrow{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px}
+    .tag{
+      font-size:12px;
+      color: rgba(233,241,255,.86);
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(6,8,20,.5);
+    }
+
+    .layout{
+      margin-top:18px;
+      display:grid;
+      grid-template-columns: 1fr 1fr;
+      gap:16px;
+    }
+
+    .section-title{
+      display:flex; align-items:flex-end; justify-content:space-between; gap:12px;
+      margin:0 0 10px;
+    }
+    .section-title h3{margin:0; font-size:16px}
+    .section-title p{margin:0; color:var(--muted); font-size:12px}
+
+    .list{margin:0; padding:0 0 0 18px; color:rgba(233,241,255,.92)}
+    .list li{margin:7px 0; line-height:1.35}
+
+    .grid2{display:grid; grid-template-columns: 1fr 1fr; gap:10px}
+
+    .metric{
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:20px;
+      padding:18px; /* increased padding for better visual weight */
+      background: rgba(7,10,18,.40);
+    }
+    .metric .n{font-weight:900; font-size:22px; margin-top:8px}
+    .metric .t{font-size:12px; color:var(--muted)}
+    .metric .n{font-weight:800; font-size:18px; margin-top:6px}
+    .metric .b{font-size:11px; color:rgba(233,241,255,.75); margin-top:6px}
+
+    .divider{height:1px; background: rgba(255,255,255,.10); margin:14px 0}
+
+    .controls{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+    .control{
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(6,8,20,.5);
+      border-radius:14px;
+      padding:10px 12px;
+      display:flex; flex-direction:column; gap:6px;
+      min-width: 190px;
+    }
+    .control label{font-size:12px; color:var(--muted)}
+    .control input,.control select{
+      width:100%;
+      background: rgba(13,18,36,.75);
+      border: 1px solid rgba(255,255,255,.14);
+      color: var(--text);
+      border-radius:12px;
+      padding:10px 10px;
+      outline:none;
+    }
+
+    .callout{
+      border: 1px solid rgba(255,255,255,.12);
+      background: linear-gradient(180deg, rgba(34,197,94,.13), rgba(34,197,94,.06));
+      padding:12px;
+      border-radius:16px;
+      color: rgba(233,241,255,.92);
+    }
+
+    .badge{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:8px 10px;
+      border-radius:999px;
+      font-size:12px;
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(6,8,20,.55);
+      color: rgba(233,241,255,.9);
+    }
+
+    .svgwrap{width:100%; overflow:hidden}
+
+    /* Canvas blocks are used as infographics + realtime plots */
+    canvas{
+      width:100%;
+      height:220px;
+      background: rgba(7,10,18,.25);
+      border:1px solid rgba(255,255,255,.12);
+      border-radius:16px;
+    }
+
+    .foot{
+      margin-top:18px;
+      color: rgba(233,241,255,.72);
+      font-size:12px;
+      line-height:1.5;
+    }
+
+    .twoCols{display:grid; grid-template-columns: 1.1fr .9fr; gap:12px}
+
+    /* A small “terminal” panel for realtime events */
+    .log{
+      border:1px solid rgba(255,255,255,.12);
+      background: rgba(7,10,18,.35);
+      border-radius:16px;
+      padding:12px;
+      height:220px;
+      overflow:auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size:12px;
+      color: rgba(233,241,255,.85);
+    }
+    .log .muted{color: rgba(233,241,255,.60)}
+
+    /* Responsive */
+    @media (max-width: 980px){
+      .hero{grid-template-columns:1fr;}
+      .layout{grid-template-columns:1fr;}
+      .twoCols{grid-template-columns:1fr;}
+      .kpis{grid-template-columns:1fr;}
+      .brand{min-width:unset}
+    }
+
+    /* Print */
+    @media print{
+      header,.grid,.actions,.btn{display:none !important}
+      body{background:#fff; color:#111}
+      .card,.mini{box-shadow:none; border:1px solid #ddd}
+      canvas{border:1px solid #ddd; background:#fff}
+    }
+  </style>
+</head>
+
+<body>
+  <div class="grid"></div>
+
+  <header>
+    <!-- ==========================
+         SCROLL‑BASED MICROSITE NAV
+         Sticky, anchor‑driven navigation for website deployment
+         ========================== -->
+    <div class="topbar">
+      <nav style="display:flex;gap:10px;flex-wrap:wrap">
+        <a href="#hero" class="badge">Overview</a>
+        <a href="#market-gap" class="badge">Market Gap</a>
+        <a href="#roi" class="badge">ROI</a>
+        <a href="#architecture" class="badge">Architecture</a>
+        <a href="#roadmap" class="badge">Roadmap</a>
+        <a href="#contact" class="badge">Contact</a>
+      </nav>
+      <div class="brand">
+        <div class="logo" aria-hidden="true"></div>
+        <div>
+          <h1>Sudarshan AI Labs — Interactive Whitepaper</h1>
+          <p>India-first AI for MSME growth + Gov-grade delivery patterns</p>
+        </div>
+      </div>
+
+      <div class="actions">
+        <!--
+          Depth slider controls the “tilt intensity” of 3D cards.
+          This is cosmetic but improves perceived “3D vector” feel.
+        -->
+        <div class="pill" title="Controls the 3D depth of cards">
+          <span style="font-size:12px;color:var(--muted)">3D depth</span>
+          <input id="depth" type="range" min="0" max="16" value="8" />
+        </div>
+
+        <!-- Toggle simulated realtime updates for charts + architecture flow animation -->
+        <button class="btn secondary" id="toggleRealtime">⏱️ Realtime: ON</button>
+
+        <!-- Separate toggle for architecture flow animation (useful in presentations) -->
+        <button class="btn secondary" id="toggleFlow">🧬 Flow: ON</button>
+
+        <!-- Print-friendly output (browser print → Save as PDF) -->
+        <button class="btn" id="print">🖨️ Print / PDF</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==========================
+       STICKY BOTTOM CTA (MOBILE-FIRST)
+       Visible on scroll to convert traffic
+       ========================== -->
+  <div class="sticky-cta" role="region" aria-label="Quick actions">
+    <a href="tel:+917080842220" class="cta-btn call">📞 Call</a>
+    <a href="https://wa.me/917080842220" target="_blank" class="cta-btn wa">💬 WhatsApp</a>
+    <a href="#roi" class="cta-btn roi">📈 ROI</a>
+  </div>
+
+  <main class="wrap">
+
+    <!-- ==========================
+         HERO
+         ========================== -->
+    <section class="hero" id="hero">
+      <div class="card" id="heroCard">
+        <div class="inner">
+          <div class="h-eyebrow">
+            <span class="dot"></span>
+            <span>Whitepaper • v1.1 • Feb 2026 • Lucknow-first, India-scale</span>
+          </div>
+
+          <h2>From ₹89 onboarding to <span style="color:var(--accent)">Gov-grade AI delivery</span> — one architecture.</h2>
+          <p class="subtitle">
+            This interactive whitepaper explains Sudarshan AI Labs’ approach to building
+            <b>affordable AI + digital growth for MSMEs</b> while meeting real constraints:
+            reliability, multilingual UX, privacy, auditability, and cost control.
+          </p>
+
+          <div class="kpis">
+            <div class="kpi">
+              <div class="label">Primary outcome</div>
+              <div class="value">More revenue per shop</div>
+              <div class="hint">Higher conversion, repeat buyers, near‑me discovery</div>
+            </div>
+            <div class="kpi">
+              <div class="label">Delivery constraint</div>
+              <div class="value">Scale + compliance</div>
+              <div class="hint">Audit logs, PII controls, uptime playbooks</div>
+            </div>
+            <div class="kpi">
+              <div class="label">Core engine</div>
+              <div class="value">Agentic workflows</div>
+              <div class="hint">LLMs + tools + policies (not “chatbot only”)</div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="twoCols">
+            <div>
+              <div class="section-title">
+                <h3>What problem are we solving?</h3>
+                <p>India reality: fragmented MSMEs + low digital adoption</p>
+              </div>
+              <ul class="list">
+                <li><b>Discovery gap:</b> customers can’t find businesses in “near me”.</li>
+                <li><b>Trust + repeat gap:</b> no simple retention loop (WhatsApp catalog + reminders).</li>
+                <li><b>Operator gap:</b> owner is busy; needs automation, not dashboards.</li>
+                <li><b>Gov-grade gap:</b> systems must be secure, auditable, and resilient.</li>
+              </ul>
+            </div>
+            <div>
+              <div class="section-title">
+                <h3>Thesis</h3>
+                <p>LLMs don’t win alone — workflows win.</p>
+              </div>
+              <div class="callout">
+                <b>Winning pattern:</b> “Policy-first agent + toolchain” → deterministic actions with human-in-the-loop.
+                <div style="margin-top:10px; display:flex; gap:8px; flex-wrap:wrap">
+                  <span class="badge">🔐 PII safe</span>
+                  <span class="badge">🧾 Auditable</span>
+                  <span class="badge">🗣️ Hindi/Hinglish</span>
+                  <span class="badge">📶 Low bandwidth</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tagrow">
+            <span class="tag">#VyapaarKaAIYug</span>
+            <span class="tag">#DigitalSwaraj</span>
+            <span class="tag">#TechSwaraj</span>
+            <span class="tag">#MSME</span>
+            <span class="tag">#GovTech-ready</span>
+          </div>
+        </div>
+      </div>
+
+      <aside class="side" id="contact">
+        <div class="mini">
+          <div class="inner">
+            <div class="section-title">
+              <h3>Contact & Call‑to‑Action</h3>
+              <p>Talk to us • Start in ₹89</p>
+            </div>
+            <div style="display:grid; gap:10px; font-size:13px">
+              <a href="tel:+917080842220" class="badge">📞 Call: +91‑7080842220</a>
+              <a href="https://www.sudarshan-ai-labs.com" target="_blank" class="badge">🌐 Website</a>
+              <a href="https://wa.me/917080842220" target="_blank" class="badge">💬 WhatsApp Demo</a>
+              <a href="https://www.linkedin.com/company/sudarshan-ai-labs/" target="_blank" class="badge">🔗 LinkedIn</a>
+            </div>
+            <div class="foot">Responsive CTAs — tap to call, chat, or view demo instantly.</div>
+          </div>
+        </div>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <!-- ==========================
+         INFOGRAPHICS (MARKET GAP + UNDERSERVED NICHE)
+         These visuals are “whitepaper grade”: clean, simple, presentation-ready.
+         ========================== -->
+    <div class="section-spacer"></div>
+    <section class="layout" id="market-gap">
+      <div class="card" id="gapCard">
+        <div class="inner">
+          <div class="section-title">
+            <h3>Infographic: Where the market fails MSMEs</h3>
+            <p>pain points → your wedge</p>
+          </div>
+
+          <!--
+            Canvas donut: complaint/pain distribution (simulated baseline).
+            You can later swap these weights with real research numbers.
+          -->
+          <canvas id="painDonut"></canvas>
+
+          <div class="foot">
+            <b>Interpretation:</b> Most tools over-index on dashboards and English-first UX.
+            The wedge is <b>Hindi-first voice/video workflows</b> that reduce human effort and increase adoption.
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="nicheCard">
+        <div class="inner">
+          <div class="section-title">
+            <h3>Infographic: Underserved niches Sudarshan can dominate</h3>
+            <p>ranked by “ease × impact”</p>
+          </div>
+
+          <!--
+            Canvas bar chart: niche opportunities.
+            Values here are “scoring” for visual demonstration.
+          -->
+          <canvas id="nicheBars"></canvas>
+
+          <div class="foot">
+            <b>Rule:</b> Pick one niche → own it locally (Lucknow/UP) → copy-paste playbook across districts.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================
+         ROI + REALTIME (OPS CONSOLE)
+         ========================== -->
+    <div class="section-spacer"></div>
+    <section class="layout" id="roi">
+      <div class="card" id="roiCard">
+        <div class="inner">
+          <div class="section-title">
+            <h3>Interactive: MSME Growth Impact Model</h3>
+            <p>change inputs → see expected lift</p>
+          </div>
+
+          <div class="controls">
+            <div class="control">
+              <label>Monthly footfall (walk-ins)</label>
+              <input id="inFootfall" type="number" min="100" step="50" value="1200" />
+            </div>
+            <div class="control">
+              <label>Avg order value (₹)</label>
+              <input id="inAOV" type="number" min="50" step="10" value="280" />
+            </div>
+            <div class="control">
+              <label>Conversion rate (%)</label>
+              <input id="inCR" type="number" min="1" step=".5" value="18" />
+            </div>
+            <div class="control">
+              <label>Expected lift from digital ops</label>
+              <select id="inLift">
+                <option value="0.08">+8% (baseline)</option>
+                <option value="0.15" selected>+15% (typical)</option>
+                <option value="0.25">+25% (aggressive)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="grid2">
+            <div class="metric">
+              <div class="t">Current monthly revenue (estimate)</div>
+              <div class="n" id="mBase">₹0</div>
+              <div class="b">Footfall × CR × AOV</div>
+            </div>
+            <div class="metric">
+              <div class="t">Projected monthly revenue</div>
+              <div class="n" id="mProj">₹0</div>
+              <div class="b">Base × (1 + lift)</div>
+            </div>
+            <div class="metric">
+              <div class="t">Incremental uplift / month</div>
+              <div class="n" id="mDelta">₹0</div>
+              <div class="b">Projected − Base</div>
+            </div>
+            <div class="metric">
+              <div class="t">Payback time (₹89 onboarding)</div>
+              <div class="n" id="mPay">0 days</div>
+              <div class="b">₹89 ÷ daily uplift</div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="section-title">
+            <h3>Realtime telemetry (simulated)</h3>
+            <p>looks like a GovTech operations console</p>
+          </div>
+
+          <!--
+            This is a single canvas time-series plot.
+            Realtime is “simulated” but it demonstrates what you would draw
+            when you stream real events from your backend.
+          -->
+          <canvas id="telemetry"></canvas>
+
+          <div class="foot">
+            <b>Note:</b> This realtime feed is a safe simulation to show how ops telemetry can be visualized
+            without exposing business PII. Production: event logs (catalog updates, WhatsApp clicks, map searches, orders).
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="eventsCard">
+        <div class="inner">
+          <div class="section-title">
+            <h3>Realtime event stream (simulated)</h3>
+            <p>human-readable audit trail</p>
+          </div>
+
+          <!--
+            The log panel mimics an “audit + ops stream”.
+            In production: each line would be an event from your pipeline.
+          -->
+          <div class="log" id="eventLog" aria-live="polite"></div>
+
+          <div class="foot">
+            <b>Why it matters:</b> This panel intentionally uses large visual spacing to explain trust.
+            We now utilize it to emphasize <b>auditability, explainability, and real‑time ops visibility</b> —
+            the exact gaps enterprises and government teams complain about in existing SaaS tools.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================
+         ARCHITECTURE (WITH REALTIME FLOW)
+         ========================== -->
+    <div class="section-spacer"></div>
+    <section class="layout" id="architecture">
+      <div class="card" id="archCard">
+        <div class="inner">
+          <div class="section-title">
+            <h3>Architecture: Policy-first Agent System (with flow)</h3>
+            <p>hover nodes • click to pin • watch flow</p>
+          </div>
+
+          <div class="svgwrap">
+            <!--
+              The SVG includes:
+              - “Static” nodes & links
+              - “Flow layer” (animated dots along paths) that can be toggled
+
+              Implementation detail:
+              - We predefine path lengths in JS and animate markers along them.
+              - No external library is used; we manipulate SVG with JS.
+            -->
+            <svg id="arch" viewBox="0 0 980 560" width="100%" height="auto" role="img" aria-label="Agentic architecture diagram">
+              <defs>
+                <linearGradient id="g1" x1="0" x2="1">
+                  <stop offset="0" stop-color="rgba(71,183,255,.55)"/>
+                  <stop offset="1" stop-color="rgba(139,92,246,.55)"/>
+                </linearGradient>
+                <linearGradient id="g2" x1="0" x2="1">
+                  <stop offset="0" stop-color="rgba(34,197,94,.55)"/>
+                  <stop offset="1" stop-color="rgba(71,183,255,.55)"/>
+                </linearGradient>
+                <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%">
+                  <feDropShadow dx="0" dy="18" stdDeviation="14" flood-color="rgba(0,0,0,.55)"/>
+                </filter>
+              </defs>
+
+              <!--
+                LINK LAYER
+                Each path gets a stable id so JS can attach animated “flow dots”.
+              -->
+              <g id="archLinks" opacity=".9" stroke="rgba(233,241,255,.22)" stroke-width="2" fill="none">
+                <path id="p-ch" d="M210 120 C290 120, 300 120, 360 120"/>
+                <path id="p-da" d="M210 220 C290 220, 300 220, 360 220"/>
+                <path id="p-po" d="M210 320 C290 320, 300 320, 360 320"/>
+                <path id="p-go" d="M560 175 C640 175, 650 175, 740 175"/>
+                <path id="p-in" d="M560 275 C640 275, 650 275, 740 275"/>
+                <path id="p-ob" d="M560 375 C640 375, 650 375, 740 375"/>
+                <path id="p-mid1" d="M460 120 C460 160, 460 160, 460 200"/>
+                <path id="p-mid2" d="M460 260 C460 295, 460 295, 460 330"/>
+              </g>
+
+              <!-- FLOW LAYER (animated dots injected by JS into this group) -->
+              <g id="archFlow"></g>
+
+              <!-- Left column (Inputs) -->
+              <g filter="url(#shadow)">
+                <g class="node" data-title="Customer channels" data-body="WhatsApp, web, call center, kiosk. Low-bandwidth first." transform="translate(40,70)">
+                  <rect rx="18" ry="18" width="170" height="90" fill="rgba(13,18,36,.88)" stroke="rgba(255,255,255,.14)"/>
+                  <rect rx="18" ry="18" width="170" height="90" fill="url(#g1)" opacity=".18"/>
+                  <text x="16" y="36" font-size="14" fill="rgba(233,241,255,.95)" font-weight="700">Channels</text>
+                  <text x="16" y="58" font-size="12" fill="rgba(233,241,255,.78)">WhatsApp • Web</text>
+                  <text x="16" y="76" font-size="12" fill="rgba(233,241,255,.78)">Helpline • QR</text>
+                </g>
+
+                <g class="node" data-title="Business data" data-body="Catalog, offers, timings, consent. Minimum data principle." transform="translate(40,170)">
+                  <rect rx="18" ry="18" width="170" height="90" fill="rgba(13,18,36,.88)" stroke="rgba(255,255,255,.14)"/>
+                  <rect rx="18" ry="18" width="170" height="90" fill="url(#g2)" opacity=".16"/>
+                  <text x="16" y="36" font-size="14" fill="rgba(233,241,255,.95)" font-weight="700">Data</text>
+                  <text x="16" y="58" font-size="12" fill="rgba(233,241,255,.78)">Catalog • Offers</text>
+                  <text x="16" y="76" font-size="12" fill="rgba(233,241,255,.78)">Consent • Roles</text>
+                </g>
+
+                <g class="node" data-title="Policy & Compliance" data-body="Guardrails: PII masking, prompt injection defense, audit logs, rate limits. Human approvals for risky actions." transform="translate(40,270)">
+                  <rect rx="18" ry="18" width="170" height="90" fill="rgba(13,18,36,.88)" stroke="rgba(255,255,255,.14)"/>
+                  <rect rx="18" ry="18" width="170" height="90" fill="rgba(251,191,36,.22)" opacity=".22"/>
+                  <text x="16" y="36" font-size="14" fill="rgba(233,241,255,.95)" font-weight="700">Policy</text>
+                  <text x="16" y="58" font-size="12" fill="rgba(233,241,255,.78)">PII • Audit</text>
+                  <text x="16" y="76" font-size="12" fill="rgba(233,241,255,.78)">Approvals</text>
+                </g>
+              </g>
+
+              <!-- Middle (Agent Orchestrator) -->
+              <g filter="url(#shadow)" class="node" data-title="Agent Orchestrator" data-body="Routes tasks to tools with policies. Maintains state, retries, and escalation." transform="translate(360,85)">
+                <rect rx="22" ry="22" width="200" height="290" fill="rgba(13,18,36,.92)" stroke="rgba(255,255,255,.16)"/>
+                <rect rx="22" ry="22" width="200" height="290" fill="url(#g1)" opacity=".20"/>
+                <text x="18" y="42" font-size="15" fill="rgba(233,241,255,.98)" font-weight="800">Orchestrator</text>
+                <text x="18" y="66" font-size="12" fill="rgba(233,241,255,.78)">Task routing • Memory</text>
+                <text x="18" y="86" font-size="12" fill="rgba(233,241,255,.78)">Retries • Escalation</text>
+
+                <g transform="translate(18,110)">
+                  <rect rx="16" ry="16" width="164" height="56" fill="rgba(7,10,18,.35)" stroke="rgba(255,255,255,.12)"/>
+                  <text x="12" y="24" font-size="12" fill="rgba(233,241,255,.90)" font-weight="700">LLM Reasoning</text>
+                  <text x="12" y="44" font-size="11" fill="rgba(233,241,255,.72)">Plan → act → verify</text>
+                </g>
+
+                <g transform="translate(18,176)">
+                  <rect rx="16" ry="16" width="164" height="56" fill="rgba(7,10,18,.35)" stroke="rgba(255,255,255,.12)"/>
+                  <text x="12" y="24" font-size="12" fill="rgba(233,241,255,.90)" font-weight="700">Tool Calls</text>
+                  <text x="12" y="44" font-size="11" fill="rgba(233,241,255,.72)">Search • Compose • Post</text>
+                </g>
+
+                <g transform="translate(18,242)">
+                  <rect rx="16" ry="16" width="164" height="56" fill="rgba(7,10,18,.35)" stroke="rgba(255,255,255,.12)"/>
+                  <text x="12" y="24" font-size="12" fill="rgba(233,241,255,.90)" font-weight="700">Safety Layer</text>
+                  <text x="12" y="44" font-size="11" fill="rgba(233,241,255,.72)">Redact • Gate • Log</text>
+                </g>
+              </g>
+
+              <!-- Right (Tools) -->
+              <g filter="url(#shadow)">
+                <g class="node" data-title="Growth tools" data-body="SEO drafts, creatives, listings, replies. WhatsApp-first distribution." transform="translate(740,130)">
+                  <rect rx="18" ry="18" width="200" height="90" fill="rgba(13,18,36,.88)" stroke="rgba(255,255,255,.14)"/>
+                  <rect rx="18" ry="18" width="200" height="90" fill="url(#g2)" opacity=".16"/>
+                  <text x="16" y="36" font-size="14" fill="rgba(233,241,255,.95)" font-weight="700">Growth Ops</text>
+                  <text x="16" y="58" font-size="12" fill="rgba(233,241,255,.78)">SEO • Posters • Offers</text>
+                  <text x="16" y="76" font-size="12" fill="rgba(233,241,255,.78)">WhatsApp distribution</text>
+                </g>
+
+                <g class="node" data-title="Integrations" data-body="APIs, queues, auth, consent. Minimal surface area + strong contracts." transform="translate(740,230)">
+                  <rect rx="18" ry="18" width="200" height="90" fill="rgba(13,18,36,.88)" stroke="rgba(255,255,255,.14)"/>
+                  <rect rx="18" ry="18" width="200" height="90" fill="rgba(71,183,255,.18)" opacity=".24"/>
+                  <text x="16" y="36" font-size="14" fill="rgba(233,241,255,.95)" font-weight="700">Integrations</text>
+                  <text x="16" y="58" font-size="12" fill="rgba(233,241,255,.78)">APIs • SSO • Queues</text>
+                  <text x="16" y="76" font-size="12" fill="rgba(233,241,255,.78)">Approvals • Roles</text>
+                </g>
+
+                <g class="node" data-title="Observability" data-body="Metrics, alerts, and tamper-evident audit records. SRE playbooks for outages." transform="translate(740,330)">
+                  <rect rx="18" ry="18" width="200" height="90" fill="rgba(13,18,36,.88)" stroke="rgba(255,255,255,.14)"/>
+                  <rect rx="18" ry="18" width="200" height="90" fill="rgba(34,197,94,.18)" opacity=".24"/>
+                  <text x="16" y="36" font-size="14" fill="rgba(233,241,255,.95)" font-weight="700">Observability</text>
+                  <text x="16" y="58" font-size="12" fill="rgba(233,241,255,.78)">Metrics • Alerts</text>
+                  <text x="16" y="76" font-size="12" fill="rgba(233,241,255,.78)">Audit trails</text>
+                </g>
+              </g>
+
+              <!-- Extra bottom strip: Hindi-first voice/video wedge -->
+              <g filter="url(#shadow)" class="node" data-title="Hindi-first Voice + Video" data-body="The wedge: voice onboarding, video explainers, and auto-generated Hindi content + replies." transform="translate(260,455)">
+                <rect rx="20" ry="20" width="460" height="80" fill="rgba(13,18,36,.90)" stroke="rgba(255,255,255,.14)"/>
+                <rect rx="20" ry="20" width="460" height="80" fill="url(#g1)" opacity=".16"/>
+                <text x="18" y="34" font-size="14" fill="rgba(233,241,255,.98)" font-weight="800">Hindi-first Voice + Video Capability</text>
+                <text x="18" y="58" font-size="12" fill="rgba(233,241,255,.78)">Onboarding • Explainers • UGC reels • Review replies • Agent voice notes</text>
+              </g>
+            </svg>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="section-title">
+            <h3>Node details</h3>
+            <p>click any node to pin details</p>
+          </div>
+
+          <div class="callout" id="nodeDetail">
+            <b>Tip:</b> Hover a node to preview details. Click to pin.
+          </div>
+
+          <div class="foot">
+            <b>Design choice:</b> The agent never acts directly; it acts through tools with policy gates and logs.
+            The animated flow is a simple way to explain this architecture to non-technical stakeholders.
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="funnelCard">
+        <div class="inner">
+          <div class="section-title">
+            <h3>Infographic: MSME growth flywheel</h3>
+            <p>simple funnel → repeat loop</p>
+          </div>
+
+          <!--
+            SVG funnel infographic.
+            It’s static but you can make it interactive later (click to expand steps).
+          -->
+          <div class="svgwrap">
+            <svg viewBox="0 0 980 320" width="100%" height="auto" role="img" aria-label="MSME growth flywheel">
+              <defs>
+                <linearGradient id="f1" x1="0" x2="1">
+                  <stop offset="0" stop-color="rgba(71,183,255,.55)"/>
+                  <stop offset="1" stop-color="rgba(139,92,246,.45)"/>
+                </linearGradient>
+                <linearGradient id="f2" x1="0" x2="1">
+                  <stop offset="0" stop-color="rgba(34,197,94,.50)"/>
+                  <stop offset="1" stop-color="rgba(71,183,255,.45)"/>
+                </linearGradient>
+              </defs>
+
+              <!-- Funnel blocks -->
+              <g>
+                <rect x="40"  y="60" width="220" height="90" rx="18" fill="rgba(13,18,36,.88)" stroke="rgba(255,255,255,.14)" />
+                <rect x="40"  y="60" width="220" height="90" rx="18" fill="url(#f1)" opacity=".14" />
+                <text x="64" y="98" font-size="16" fill="rgba(233,241,255,.95)" font-weight="800">Discovery</text>
+                <text x="64" y="124" font-size="12" fill="rgba(233,241,255,.78)">Google • Maps • Near-me</text>
+
+                <rect x="300" y="60" width="220" height="90" rx="18" fill="rgba(13,18,36,.88)" stroke="rgba(255,255,255,.14)" />
+                <rect x="300" y="60" width="220" height="90" rx="18" fill="url(#f2)" opacity=".14" />
+                <text x="324" y="98" font-size="16" fill="rgba(233,241,255,.95)" font-weight="800">Conversion</text>
+                <text x="324" y="124" font-size="12" fill="rgba(233,241,255,.78)">Offers • Catalog • Trust</text>
+
+                <rect x="560" y="60" width="220" height="90" rx="18" fill="rgba(13,18,36,.88)" stroke="rgba(255,255,255,.14)" />
+                <rect x="560" y="60" width="220" height="90" rx="18" fill="url(#f1)" opacity=".14" />
+                <text x="584" y="98" font-size="16" fill="rgba(233,241,255,.95)" font-weight="800">Retention</text>
+                <text x="584" y="124" font-size="12" fill="rgba(233,241,255,.78)">WhatsApp reminders</text>
+
+                <rect x="820" y="60" width="120" height="90" rx="18" fill="rgba(13,18,36,.88)" stroke="rgba(255,255,255,.14)" />
+                <rect x="820" y="60" width="120" height="90" rx="18" fill="rgba(251,191,36,.18)" opacity=".16" />
+                <text x="834" y="98" font-size="16" fill="rgba(233,241,255,.95)" font-weight="800">ROI</text>
+                <text x="834" y="124" font-size="12" fill="rgba(233,241,255,.78)">Revenue ↑</text>
+
+                <!-- Arrows -->
+                <g stroke="rgba(233,241,255,.25)" stroke-width="2" fill="none">
+                  <path d="M260 105 L300 105" />
+                  <path d="M520 105 L560 105" />
+                  <path d="M780 105 L820 105" />
+                </g>
+
+                <!-- Flywheel loop -->
+                <path d="M120 220 C 260 280, 720 280, 860 220" stroke="rgba(233,241,255,.18)" stroke-width="3" fill="none" />
+                <text x="410" y="275" font-size="12" fill="rgba(233,241,255,.72)">Agent automations keep the loop running weekly (offers, posts, replies)</text>
+              </g>
+            </svg>
+          </div>
+
+          <div class="foot">
+            <b>Hindi-first wedge:</b> Voice onboarding + video explainers increase conversion and reduce support tickets.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ==========================
+         IMPLEMENTATION PLAN
+         ========================== -->
+    <div class="section-spacer"></div>
+    <section class="layout" id="roadmap">
+      <div class="card" id="planCard">
+        <div class="inner">
+          <div class="section-title">
+            <h3>Implementation roadmap (90 days)</h3>
+            <p>execution-first, India constraints</p>
+          </div>
+
+          <div class="grid2">
+            <div class="metric">
+              <div class="t">Phase 1 (Week 1–2)</div>
+              <div class="n">Foundation</div>
+              <div class="b">Telemetry + policy + onboarding funnel</div>
+            </div>
+            <div class="metric">
+              <div class="t">Phase 2 (Week 3–6)</div>
+              <div class="n">Automation</div>
+              <div class="b">WhatsApp workflows + catalog ops + SEO drafts</div>
+            </div>
+            <div class="metric">
+              <div class="t">Phase 3 (Week 7–10)</div>
+              <div class="n">Hardening</div>
+              <div class="b">Audit logs, rate limits, escalation playbooks</div>
+            </div>
+            <div class="metric">
+              <div class="t">Phase 4 (Week 11–13)</div>
+              <div class="n">Scale</div>
+              <div class="b">Local pilots → district rollout playbook</div>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="section-title">
+            <h3>Success metrics (what we measure)</h3>
+            <p>investor-grade and operator-grade</p>
+          </div>
+          <ul class="list">
+            <li><b>MSME activation:</b> % onboarded that publish catalog within 72 hours</li>
+            <li><b>Discovery:</b> Google profile views / “direction” clicks / near-me rankings (proxy)</li>
+            <li><b>Retention:</b> WhatsApp CTR + repeat purchase rate</li>
+            <li><b>Ops cost:</b> human minutes per shop per month (target: down every week)</li>
+            <li><b>Reliability:</b> agent success rate, retries, mean time to recovery (MTTR)</li>
+          </ul>
+
+          <div class="divider"></div>
+
+          <div class="callout">
+            <b>Investor story:</b> Not “AI chat”. It’s <b>outcome automation</b> with measurable, auditable ROI.
+          </div>
+        </div>
+      </div>
+
+      <div class="card" id="riskCard">
+        <div class="inner">
+          <div class="section-title">
+            <h3>Risk register (brutally honest)</h3>
+            <p>and how we de-risk</p>
+          </div>
+
+          <ul class="list">
+            <li><b>Hallucinations →</b> tool-first actions + verifiers + approvals for high-impact tasks.</li>
+            <li><b>Prompt injection →</b> sanitize inputs + allowlisted tools + policy rules.</li>
+            <li><b>PII leakage →</b> redact-before-store, least data, RBAC, audit trails.</li>
+            <li><b>WhatsApp reliability →</b> queue-based sending + retries + fallbacks where allowed.</li>
+            <li><b>Low digital literacy →</b> Hindi voice flows + minimal steps + done-for-you onboarding.</li>
+          </ul>
+
+          <div class="divider"></div>
+
+          <div class="section-title">
+            <h3>Why this can fit public platforms</h3>
+            <p>safe-by-design</p>
+          </div>
+          <div class="grid2">
+            <div class="metric">
+              <div class="t">Auditability</div>
+              <div class="n">🧾 Full traces</div>
+              <div class="b">Every action logged with inputs/outputs</div>
+            </div>
+            <div class="metric">
+              <div class="t">Control</div>
+              <div class="n">🧯 Kill-switch</div>
+              <div class="b">Disable tools instantly if needed</div>
+            </div>
+            <div class="metric">
+              <div class="t">Cost</div>
+              <div class="n">📉 Budget caps</div>
+              <div class="b">Rate limits + caching + cheap verifiers</div>
+            </div>
+            <div class="metric">
+              <div class="t">Resilience</div>
+              <div class="n">🔁 Retries</div>
+              <div class="b">Queue + idempotent tool calls</div>
+            </div>
+          </div>
+
+          <div class="foot">
+            This blueprint scales from a single shop in Lucknow to large deployments without changing the safety posture.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="foot" style="margin-top:18px">
+      <b>Deployment note:</b> This page is now a <b>scroll‑based microsite</b>.
+      Host as <code>/whitepaper</code> or <code>/msme-growth</code> on your main site.
+      Works on Wix (static embed), Netlify, Vercel, or any CDN.
+    </div>
+
+  </main>
+
+  <script>
+    /* ==========================================================
+       HELPERS
+       ========================================================== */
+
+    /**
+     * Format numbers as INR (Indian digit grouping).
+     * Example: 1234567 => 12,34,567
+     */
+    const fmtINR = (n) => {
+      const x = Math.round(Number(n) || 0);
+      return x.toLocaleString('en-IN');
+    };
+
+    /**
+     * A tiny helper for creating DOM elements (used for log entries).
+     */
+    function el(tag, attrs = {}, text = ''){
+      const node = document.createElement(tag);
+      Object.entries(attrs).forEach(([k,v]) => node.setAttribute(k, v));
+      if (text) node.textContent = text;
+      return node;
+    }
+
+    /* ==========================================================
+       3D DEPTH + “LIGHT TRACKING” (VECTOR FEEL)
+       ========================================================== */
+
+    const depth = document.getElementById('depth');
+
+    // Query cards lazily (helps if you ever inject new sections later)
+    const cards = () => document.querySelectorAll('.card, .kpi, .mini');
+
+    /**
+     * Applies the depth slider value to KPI cards.
+     * (We keep it subtle so it doesn’t feel “gimmicky” on mobile.)
+     */
+    function applyDepth(){
+      const d = Number(depth.value);
+      document.documentElement.style.setProperty('--tilt', d);
+      document.querySelectorAll('.kpi').forEach(k => {
+        k.style.transform = `perspective(900px) rotateX(${Math.max(2, d/2)}deg)`;
+      });
+    }
+    depth.addEventListener('input', applyDepth);
+    applyDepth();
+
+    /**
+     * Tracks pointer position on each card to move a gradient highlight.
+     * This creates a “3D vector” shine without heavy 3D rendering.
+     */
+    function bindGlow(elm){
+      elm.addEventListener('pointermove', (e) => {
+        const r = elm.getBoundingClientRect();
+        const mx = ((e.clientX - r.left) / r.width) * 100;
+        const my = ((e.clientY - r.top) / r.height) * 100;
+        elm.style.setProperty('--mx', mx + '%');
+        elm.style.setProperty('--my', my + '%');
+      });
+    }
+    cards().forEach(bindGlow);
+
+    /* ==========================================================
+       ROI CALCULATOR
+       ========================================================== */
+
+    // Inputs
+    const inFootfall = document.getElementById('inFootfall');
+    const inAOV = document.getElementById('inAOV');
+    const inCR = document.getElementById('inCR');
+    const inLift = document.getElementById('inLift');
+
+    // Outputs
+    const mBase = document.getElementById('mBase');
+    const mProj = document.getElementById('mProj');
+    const mDelta = document.getElementById('mDelta');
+    const mPay = document.getElementById('mPay');
+
+    /**
+     * Recalculate base revenue, projected revenue, and payback.
+     * We keep the model simple so MSME owners understand it.
+     */
+    function recalc(){
+      const foot = Math.max(0, Number(inFootfall.value) || 0);
+      const aov  = Math.max(0, Number(inAOV.value) || 0);
+      const cr   = Math.max(0, (Number(inCR.value) || 0) / 100);
+      const lift = Math.max(0, Number(inLift.value) || 0);
+
+      const base = foot * cr * aov;
+      const proj = base * (1 + lift);
+      const delta = proj - base;
+      const daily = delta / 30;
+
+      // ₹89 onboarding payback in days
+      const payDays = daily > 0 ? (89 / daily) : Infinity;
+
+      mBase.textContent  = '₹' + fmtINR(base);
+      mProj.textContent  = '₹' + fmtINR(proj);
+      mDelta.textContent = '₹' + fmtINR(delta);
+      mPay.textContent   = (payDays === Infinity) ? '—' : `${Math.max(1, Math.round(payDays))} days`;
+    }
+
+    [inFootfall, inAOV, inCR, inLift].forEach(inp => inp.addEventListener('input', recalc));
+    recalc();
+
+    /* ==========================================================
+       PRINT
+       ========================================================== */
+
+    // Browser print dialog (users can Save as PDF)
+    document.getElementById('print').addEventListener('click', () => window.print());
+
+    /* ==========================================================
+       ARCHITECTURE: NODE INTERACTIONS
+       ========================================================== */
+
+    const nodeDetail = document.getElementById('nodeDetail');
+    const nodes = Array.from(document.querySelectorAll('#arch .node'));
+
+    // Tracks which node is “pinned” (clicked) by the user
+    let pinned = null;
+
+    /**
+     * Writes details to the bottom callout area.
+     * Using innerHTML here is safe because content comes from dataset strings in the SVG.
+     */
+    function setDetail(title, body, pinnedState=false){
+      nodeDetail.innerHTML = `<b>${pinnedState ? '📌 ' : ''}${title}</b><div style="margin-top:8px">${body}</div>`;
+    }
+
+    // Hover shows details; click pins it.
+    nodes.forEach(n => {
+      n.style.cursor = 'pointer';
+
+      n.addEventListener('mouseenter', () => {
+        if (pinned) return;
+        setDetail(n.dataset.title, n.dataset.body, false);
+      });
+
+      n.addEventListener('mouseleave', () => {
+        if (pinned) return;
+        nodeDetail.innerHTML = '<b>Tip:</b> Hover a node to preview details. Click to pin.';
+      });
+
+      n.addEventListener('click', () => {
+        // Clicking the same node again unpins.
+        if (pinned === n){
+          pinned = null;
+          nodeDetail.innerHTML = '<b>Tip:</b> Hover a node to preview details. Click to pin.';
+          return;
+        }
+        pinned = n;
+        setDetail(n.dataset.title, n.dataset.body, true);
+      });
+    });
+
+    // Small hover motion on nodes for “alive diagram” feeling
+    nodes.forEach(n => {
+      const rect = n.querySelector('rect');
+      if (!rect) return;
+      n.addEventListener('pointerenter', () => {
+        n.style.transformOrigin = 'center';
+        n.style.transition = 'transform 180ms ease';
+        n.style.transform = 'translateY(-3px)';
+      });
+      n.addEventListener('pointerleave', () => {
+        if (pinned === n) return;
+        n.style.transform = 'translateY(0px)';
+      });
+    });
+
+    /* ==========================================================
+       REALTIME TOGGLES (GLOBAL STATE)
+       ========================================================== */
+
+    const state = {
+      realtime: true, // controls chart updates + event stream
+      flow: true      // controls architecture flow animation
+    };
+
+    const toggleRealtime = document.getElementById('toggleRealtime');
+    const toggleFlow = document.getElementById('toggleFlow');
+
+    toggleRealtime.addEventListener('click', () => {
+      state.realtime = !state.realtime;
+      toggleRealtime.textContent = state.realtime ? '⏱️ Realtime: ON' : '⏱️ Realtime: OFF';
+      // If realtime is off, we’ll stop timers and freeze visuals.
+      state.realtime ? startRealtime() : stopRealtime();
+    });
+
+    toggleFlow.addEventListener('click', () => {
+      state.flow = !state.flow;
+      toggleFlow.textContent = state.flow ? '🧬 Flow: ON' : '🧬 Flow: OFF';
+      // Flow is drawn on every frame; hiding it avoids distraction.
+      document.getElementById('archFlow').style.display = state.flow ? 'block' : 'none';
+    });
+
+    /* ==========================================================
+       CANVAS: RESPONSIVE SIZING
+       Canvas needs explicit pixel sizing for crisp lines (HiDPI).
+       ========================================================== */
+
+    function resizeCanvas(canvas){
+      const ctx = canvas.getContext('2d');
+      const dpr = window.devicePixelRatio || 1;
+      const r = canvas.getBoundingClientRect();
+      canvas.width = Math.round(r.width * dpr);
+      canvas.height = Math.round(r.height * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      return ctx;
+    }
+
+    /* ==========================================================
+       INFOGRAPHIC #1: PAIN DONUT
+       ========================================================== */
+
+    const painCanvas = document.getElementById('painDonut');
+    let painCtx = resizeCanvas(painCanvas);
+
+    // Simulated distribution of customer “pain/complaints”
+    // Replace these numbers with real research later.
+    const painData = [
+      {label:'High price / hidden upsells', value: 28, color:'rgba(239,68,68,0.85)'},
+      {label:'Complex setup / too many steps', value: 22, color:'rgba(251,191,36,0.85)'},
+      {label:'English-first UX (low adoption)', value: 18, color:'rgba(139,92,246,0.85)'},
+      {label:'Poor support / slow response', value: 17, color:'rgba(71,183,255,0.85)'},
+      {label:'No measurable ROI / vague reports', value: 15, color:'rgba(34,197,94,0.85)'}
+    ];
+
+    /**
+     * Draw a clean donut chart + legend.
+     * Uses arc segments and a centered hole.
+     */
+    function drawDonut(ctx, canvas, data){
+      const w = canvas.getBoundingClientRect().width;
+      const h = canvas.getBoundingClientRect().height;
+      ctx.clearRect(0,0,w,h);
+
+      // Basic “paper” header
+      ctx.fillStyle = 'rgba(233,241,255,0.82)';
+      ctx.font = '12px ui-sans-serif, system-ui';
+      ctx.fillText('Pain/complaint concentration (simulated baseline)', 12, 18);
+
+      const total = data.reduce((s,d) => s + d.value, 0);
+      const cx = Math.round(w * 0.32);
+      const cy = Math.round(h * 0.56);
+      const R = Math.min(w,h) * 0.30;
+      const r = R * 0.58;
+
+      // Donut segments
+      let a = -Math.PI/2;
+      data.forEach(d => {
+        const da = (d.value/total) * Math.PI*2;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy);
+        ctx.arc(cx, cy, R, a, a + da);
+        ctx.closePath();
+        ctx.fillStyle = d.color;
+        ctx.fill();
+        a += da;
+      });
+
+      // Donut hole
+      ctx.globalCompositeOperation = 'destination-out';
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI*2);
+      ctx.fill();
+      ctx.globalCompositeOperation = 'source-over';
+
+      // Center label
+      ctx.fillStyle = 'rgba(233,241,255,0.92)';
+      ctx.font = '700 14px ui-sans-serif, system-ui';
+      ctx.fillText('MSME Pain Map', cx - 52, cy + 5);
+
+      // Legend (right side)
+      const lx = Math.round(w * 0.58);
+      let ly = 46;
+      ctx.font = '12px ui-sans-serif, system-ui';
+      data.forEach(d => {
+        ctx.fillStyle = d.color;
+        ctx.fillRect(lx, ly-10, 12, 12);
+        ctx.fillStyle = 'rgba(233,241,255,0.82)';
+        ctx.fillText(`${d.label} — ${d.value}%`, lx + 18, ly);
+        ly += 22;
+      });
+
+      // Subtle boundary
+      ctx.strokeStyle = 'rgba(255,255,255,0.10)';
+      ctx.strokeRect(0.5, 0.5, w-1, h-1);
+    }
+
+    /* ==========================================================
+       INFOGRAPHIC #2: NICHE BARS
+       ========================================================== */
+
+    const nicheCanvas = document.getElementById('nicheBars');
+    let nicheCtx = resizeCanvas(nicheCanvas);
+
+    // Score-based opportunity ranking for visuals
+    // You can replace this with real metrics later.
+    const nicheData = [
+      {label:'Hindi voice onboarding + WhatsApp catalog', score: 92, color:'rgba(34,197,94,0.85)'},
+      {label:'Video reels + local offers (weekly)', score: 86, color:'rgba(71,183,255,0.85)'},
+      {label:'Google Maps + review reply automation', score: 82, color:'rgba(139,92,246,0.85)'},
+      {label:'Hyperlocal lead-gen for clinics/tuition', score: 76, color:'rgba(251,191,36,0.85)'},
+      {label:'Billing → CRM lite for kirana (Hindi)', score: 70, color:'rgba(239,68,68,0.72)'}
+    ];
+
+    /**
+     * Draw a bar chart with labels and a “score” axis.
+     */
+    function drawBars(ctx, canvas, data){
+      const w = canvas.getBoundingClientRect().width;
+      const h = canvas.getBoundingClientRect().height;
+      ctx.clearRect(0,0,w,h);
+
+      ctx.fillStyle = 'rgba(233,241,255,0.82)';
+      ctx.font = '12px ui-sans-serif, system-ui';
+      ctx.fillText('Opportunity score (ease × impact) — simulated', 12, 18);
+
+      // Chart area
+      const left = 14;
+      const right = w - 14;
+      const top = 34;
+      const bottom = h - 14;
+
+      // Grid lines
+      ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+      ctx.lineWidth = 1;
+      for (let i=0;i<=5;i++){
+        const y = top + (i/5)*(bottom-top);
+        ctx.beginPath(); ctx.moveTo(left, y); ctx.lineTo(right, y); ctx.stroke();
+      }
+
+      // Bars
+      const barH = (bottom - top) / data.length;
+      data.forEach((d, i) => {
+        const y = top + i*barH + 8;
+        const maxW = (right - left) * 0.58;
+        const bw = (d.score/100) * maxW;
+
+        // Label
+        ctx.fillStyle = 'rgba(233,241,255,0.82)';
+        ctx.font = '12px ui-sans-serif, system-ui';
+        ctx.fillText(d.label, left, y + 12);
+
+        // Bar background
+        const bx = left;
+        const by = y + 18;
+        ctx.fillStyle = 'rgba(233,241,255,0.06)';
+        roundRect(ctx, bx, by, maxW, 12, 6, true, false);
+
+        // Filled bar
+        ctx.fillStyle = d.color;
+        roundRect(ctx, bx, by, bw, 12, 6, true, false);
+
+        // Score
+        ctx.fillStyle = 'rgba(233,241,255,0.70)';
+        ctx.fillText(String(d.score), bx + maxW + 14, by + 11);
+      });
+
+      // Border
+      ctx.strokeStyle = 'rgba(255,255,255,0.10)';
+      ctx.strokeRect(0.5, 0.5, w-1, h-1);
+    }
+
+    /* ==========================================================
+       REALTIME TELEMETRY (TIME SERIES)
+       ========================================================== */
+
+    const telCanvas = document.getElementById('telemetry');
+    let telCtx = resizeCanvas(telCanvas);
+
+    // Telemetry streams (simulated): clicks, map views, WhatsApp messages, agent tasks
+    let t = 0;
+    const N = 80;
+    const series = {
+      clicks: Array.from({length:N}, () => 20 + Math.random()*15),
+      map:    Array.from({length:N}, () => 12 + Math.random()*10),
+      msgs:   Array.from({length:N}, () =>  8 + Math.random()*9),
+      tasks:  Array.from({length:N}, () =>  6 + Math.random()*7)
+    };
+
+    function pushSeries(name, val){
+      const a = series[name];
+      a.push(val);
+      if (a.length > N) a.shift();
+    }
+
+    /**
+     * Simulate new telemetry points.
+     * We lightly correlate signals to the “lift” input to keep the story coherent.
+     */
+    function stepTelemetry(){
+      t += 1;
+      const lift = Number(inLift.value) || 0.15;
+      const base = 1 + lift * 1.8;
+      const noise = () => (Math.random() - 0.5);
+
+      pushSeries('clicks', 20*base + 10*Math.sin(t/8)  + 8*noise());
+      pushSeries('map',    12*base +  7*Math.cos(t/9)  + 6*noise());
+      pushSeries('msgs',    8*base +  6*Math.sin(t/11) + 5*noise());
+      pushSeries('tasks',   6*base +  4*Math.cos(t/10) + 4*noise());
+    }
+
+    /**
+     * Draw the telemetry chart.
+     * This is a lightweight plotting routine: grid → series lines → legend.
+     */
+    function drawTelemetry(ctx, canvas){
+      const w = canvas.getBoundingClientRect().width;
+      const h = canvas.getBoundingClientRect().height;
+
+      ctx.clearRect(0,0,w,h);
+
+      // Background grid
+      ctx.lineWidth = 1;
+      ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+      for (let x=0; x<=w; x+=64){
+        ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,h); ctx.stroke();
+      }
+      for (let y=0; y<=h; y+=44){
+        ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(w,y); ctx.stroke();
+      }
+
+      // Labels
+      ctx.fillStyle = 'rgba(233,241,255,0.78)';
+      ctx.font = '12px ui-sans-serif, system-ui';
+      ctx.fillText('Realtime signals (simulated)', 12, 18);
+
+      const keys = ['clicks','map','msgs','tasks'];
+      const names = {clicks:'Clicks', map:'Map Views', msgs:'WhatsApp', tasks:'Agent Tasks'};
+
+      // Compute scale
+      const maxV = Math.max(...keys.flatMap(k => series[k]));
+      const minV = Math.min(...keys.flatMap(k => series[k]));
+
+      const left = 14;
+      const right = w - 14;
+      const top = 26;
+      const bottom = h - 28;
+      const dx = (right - left) / (N-1);
+
+      // Convert value → y coordinate
+      function y(v){
+        const norm = (v - minV) / (maxV - minV + 1e-9);
+        return bottom - norm * (bottom - top);
+      }
+
+      // Colors are explicit here because it’s a custom Canvas chart
+      const styles = {
+        clicks: 'rgba(71,183,255,0.95)',
+        map:    'rgba(139,92,246,0.85)',
+        msgs:   'rgba(34,197,94,0.85)',
+        tasks:  'rgba(251,191,36,0.80)'
+      };
+
+      // Draw each series
+      keys.forEach((k, idx) => {
+        ctx.strokeStyle = styles[k];
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        series[k].forEach((v,i) => {
+          const px = left + i*dx;
+          const py = y(v);
+          if (i===0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        });
+        ctx.stroke();
+
+        // last point marker
+        const last = series[k][series[k].length-1];
+        const px = left + (N-1)*dx;
+        const py = y(last);
+        ctx.fillStyle = styles[k];
+        ctx.beginPath(); ctx.arc(px, py, 3.5, 0, Math.PI*2); ctx.fill();
+
+        // legend lines
+        ctx.fillStyle = 'rgba(233,241,255,0.82)';
+        ctx.font = '12px ui-sans-serif, system-ui';
+        const ly = 40 + idx*18;
+        ctx.fillText(`${names[k]}: ${Math.max(0, Math.round(last))}`, 12, ly);
+      });
+
+      // Status pill (top-right)
+      const realtimeOn = state.realtime;
+      const s = realtimeOn ? 'Realtime ON' : 'Realtime OFF';
+      const sw = ctx.measureText(s).width;
+      ctx.fillStyle = realtimeOn ? 'rgba(34,197,94,0.18)' : 'rgba(239,68,68,0.18)';
+      ctx.strokeStyle = realtimeOn ? 'rgba(34,197,94,0.35)' : 'rgba(239,68,68,0.35)';
+      roundRect(ctx, w - sw - 26, 10, sw + 16, 24, 10, true, true);
+      ctx.fillStyle = 'rgba(233,241,255,0.90)';
+      ctx.fillText(s, w - sw - 18, 27);
+
+      // Border
+      ctx.strokeStyle = 'rgba(255,255,255,0.10)';
+      ctx.strokeRect(0.5, 0.5, w-1, h-1);
+    }
+
+    /* ==========================================================
+       REALTIME EVENT STREAM (SIMULATED)
+       ========================================================== */
+
+    const eventLog = document.getElementById('eventLog');
+
+    // Keep a small rolling buffer so it doesn’t grow forever.
+    const LOG_MAX = 60;
+
+    function nowIST(){
+      // Produces a quick timestamp like 20:31:04
+      const d = new Date();
+      return d.toLocaleTimeString('en-IN', { hour12:false });
+    }
+
+    function addLogLine(kind, msg){
+      const line = el('div');
+      const ts = el('span', { class: 'muted' }, `[${nowIST()}] `);
+      const tag = el('span', {}, `${kind}: `);
+      const body = el('span', {}, msg);
+      line.appendChild(ts);
+      line.appendChild(tag);
+      line.appendChild(body);
+
+      eventLog.appendChild(line);
+
+      // Trim old lines
+      while(eventLog.children.length > LOG_MAX){
+        eventLog.removeChild(eventLog.firstChild);
+      }
+
+      // Keep view pinned to bottom (like a terminal)
+      eventLog.scrollTop = eventLog.scrollHeight;
+    }
+
+    // Seed the log with a few lines
+    addLogLine('BOOT', 'Whitepaper console initialized (simulated).');
+    addLogLine('POLICY', 'PII redaction enabled (concept).');
+    addLogLine('AGENT', 'Orchestrator ready. Waiting for tasks…');
+
+    /**
+     * Generates plausible ops events.
+     * In production, this would be your Kafka/queue/DB event feed.
+     */
+    function stepEventStream(){
+      const lift = Number(inLift.value) || 0.15;
+      const score = Math.round((lift * 100));
+
+      const options = [
+        () => addLogLine('CATALOG', `Product update synced • items: ${Math.max(5, 8 + (score % 7))}`),
+        () => addLogLine('WHATSAPP', `Broadcast queued • segment: repeat-buyers • ETA: 2m`),
+        () => addLogLine('MAPS', `Profile views spike detected • +${Math.max(3, 8 + (score % 9))}% vs baseline`),
+        () => addLogLine('SEO', `Local post drafted (Hindi) • status: pending approval`),
+        () => addLogLine('REVIEWS', `Auto-reply suggestion generated • tone: polite • language: Hindi`),
+        () => addLogLine('ALERT', `Queue backlog normal • retries: ${Math.max(0, (score % 3))}`),
+      ];
+
+      // Pick one event per step
+      const pick = options[Math.floor(Math.random() * options.length)];
+      pick();
+    }
+
+    /* ==========================================================
+       ARCHITECTURE FLOW ANIMATION (SVG)
+       ========================================================== */
+
+    const flowGroup = document.getElementById('archFlow');
+    const flowPaths = [
+      { id: 'p-ch', color: 'rgba(71,183,255,0.85)', speed: 0.006 },
+      { id: 'p-da', color: 'rgba(34,197,94,0.85)',  speed: 0.005 },
+      { id: 'p-po', color: 'rgba(251,191,36,0.85)', speed: 0.004 },
+      { id: 'p-go', color: 'rgba(34,197,94,0.85)',  speed: 0.006 },
+      { id: 'p-in', color: 'rgba(71,183,255,0.85)', speed: 0.005 },
+      { id: 'p-ob', color: 'rgba(139,92,246,0.85)', speed: 0.004 }
+    ];
+
+    // Each flow dot has a progress value 0..1 and a reference to its path
+    let flowDots = [];
+
+    /**
+     * Build flow dots once.
+     * We create 1-2 dots per path for a “data moving” look.
+     */
+    function initFlowDots(){
+      flowGroup.innerHTML = '';
+      flowDots = [];
+
+      flowPaths.forEach((fp) => {
+        const path = document.getElementById(fp.id);
+        if (!path) return;
+
+        const count = 2; // dots per path
+        for (let i=0; i<count; i++){
+          const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          c.setAttribute('r', '5');
+          c.setAttribute('fill', fp.color);
+          c.setAttribute('opacity', '0.9');
+
+          // A soft halo around dots (simple filter-free glow)
+          const halo = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+          halo.setAttribute('r', '11');
+          halo.setAttribute('fill', fp.color);
+          halo.setAttribute('opacity', '0.18');
+
+          flowGroup.appendChild(halo);
+          flowGroup.appendChild(c);
+
+          flowDots.push({
+            path,
+            dot: c,
+            halo,
+            prog: Math.random(),
+            speed: fp.speed * (0.8 + Math.random()*0.6)
+          });
+        }
+      });
+    }
+
+    /**
+     * Update dot positions along SVG paths.
+     * getPointAtLength() gives the point on the path at a certain length.
+     */
+    function stepFlow(){
+      if (!state.flow) return;
+      flowDots.forEach(d => {
+        const len = d.path.getTotalLength();
+        d.prog = (d.prog + d.speed) % 1;
+        const p = d.path.getPointAtLength(d.prog * len);
+
+        d.dot.setAttribute('cx', String(p.x));
+        d.dot.setAttribute('cy', String(p.y));
+        d.halo.setAttribute('cx', String(p.x));
+        d.halo.setAttribute('cy', String(p.y));
+      });
+    }
+
+    /* ==========================================================
+       SHARED: ROUND RECT FOR CANVAS
+       ========================================================== */
+
+    /**
+     * Draw a rounded rectangle in Canvas.
+     * Used for pills, bars, etc.
+     */
+    function roundRect(ctx, x, y, w, h, r, fill, stroke) {
+      if (w < 2*r) r = w/2;
+      if (h < 2*r) r = h/2;
+      ctx.beginPath();
+      ctx.moveTo(x+r, y);
+      ctx.arcTo(x+w, y,   x+w, y+h, r);
+      ctx.arcTo(x+w, y+h, x,   y+h, r);
+      ctx.arcTo(x,   y+h, x,   y,   r);
+      ctx.arcTo(x,   y,   x+w, y,   r);
+      ctx.closePath();
+      if (fill) ctx.fill();
+      if (stroke) ctx.stroke();
+    }
+
+    /* ==========================================================
+       REALTIME LOOP MANAGEMENT
+       ========================================================== */
+
+    let timer = null;
+    let raf = null;
+
+    /**
+     * Start realtime timers (telemetry + logs) and animation frames (architecture flow).
+     */
+    function startRealtime(){
+      if (timer) return;
+
+      // Timed loop (every ~450ms) for telemetry + logs
+      timer = setInterval(() => {
+        if (!state.realtime) return;
+        stepTelemetry();
+        drawTelemetry(telCtx, telCanvas);
+        stepEventStream();
+      }, 450);
+
+      // requestAnimationFrame loop for smooth SVG flow
+      const loop = () => {
+        stepFlow();
+        raf = requestAnimationFrame(loop);
+      };
+      raf = requestAnimationFrame(loop);
+    }
+
+    /**
+     * Stop all loops.
+     */
+    function stopRealtime(){
+      if (timer){
+        clearInterval(timer);
+        timer = null;
+      }
+      if (raf){
+        cancelAnimationFrame(raf);
+        raf = null;
+      }
+
+      // Redraw once to show “frozen” state
+      drawTelemetry(telCtx, telCanvas);
+    }
+
+    /* ==========================================================
+       RESPONSIVE: RESIZE HANDLING
+       When the window resizes, we must:
+       - Recreate canvas transforms
+       - Redraw all charts
+       ========================================================== */
+
+    function redrawAll(){
+      painCtx = resizeCanvas(painCanvas);
+      nicheCtx = resizeCanvas(nicheCanvas);
+      telCtx = resizeCanvas(telCanvas);
+
+      drawDonut(painCtx, painCanvas, painData);
+      drawBars(nicheCtx, nicheCanvas, nicheData);
+      drawTelemetry(telCtx, telCanvas);
+
+      // Re-init flow dots because SVG geometry can scale
+      initFlowDots();
+    }
+
+    window.addEventListener('resize', () => {
+      // Using requestAnimationFrame prevents doing layout thrash repeatedly
+      requestAnimationFrame(redrawAll);
+    });
+
+    /* ==========================================================
+       CARD PARALLAX TILT
+       Adds a subtle tilt on desktop; resets on pointer leave.
+       ========================================================== */
+
+    const tiltTargets = [
+      document.getElementById('heroCard'),
+      document.getElementById('gapCard'),
+      document.getElementById('nicheCard'),
+      document.getElementById('roiCard'),
+      document.getElementById('eventsCard'),
+      document.getElementById('archCard'),
+      document.getElementById('funnelCard'),
+      document.getElementById('planCard'),
+      document.getElementById('riskCard')
+    ].filter(Boolean);
+
+    function tilt(e, elm){
+      const r = elm.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width - 0.5;
+      const y = (e.clientY - r.top) / r.height - 0.5;
+      const d = Number(depth.value);
+
+      // Rotate values are intentionally small
+      const rx = (-y) * (d/2);
+      const ry = (x) * (d/1.8);
+      elm.style.transform = `perspective(1200px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+    }
+
+    tiltTargets.forEach(elm => {
+      elm.style.transformStyle = 'preserve-3d';
+      elm.addEventListener('pointermove', (e) => tilt(e, elm));
+      elm.addEventListener('pointerleave', () => { elm.style.transform = 'none'; });
+    });
+
+    /* ==========================================================
+       INITIAL RENDER
+       ========================================================== */
+
+    redrawAll();
+
+    // Make sure flow visibility matches state
+    document.getElementById('archFlow').style.display = state.flow ? 'block' : 'none';
+
+    // Start realtime if enabled
+    startRealtime();
+
+  </script>
+</body>
+</html>
